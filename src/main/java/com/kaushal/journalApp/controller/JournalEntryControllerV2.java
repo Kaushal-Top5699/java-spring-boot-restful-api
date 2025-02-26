@@ -4,6 +4,8 @@ import com.kaushal.journalApp.entity.JournalEntry;
 import com.kaushal.journalApp.entity.JournalEntryPostgres;
 import com.kaushal.journalApp.service.JournalEntryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -17,29 +19,49 @@ public class JournalEntryControllerV2 {
 
     // For MongoDB
     @GetMapping("/get-all")
-    public List<JournalEntry> getAll() {
-        return journalEntryService.getAllEnteries();
+    public ResponseEntity<List<JournalEntry>> getAll() {
+        if (!journalEntryService.getAllEnteries().isEmpty()) {
+            return new ResponseEntity<>(journalEntryService.getAllEnteries(), HttpStatus.FOUND);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PostMapping("/new-entry")
-    public String creatNewEntry(@RequestBody JournalEntry journalEntry) {
-        return journalEntryService.createNewEntry(journalEntry);
+    public ResponseEntity<JournalEntry> creatNewEntry(@RequestBody JournalEntry journalEntry) {
+        try {
+            journalEntryService.createNewEntry(journalEntry);
+            return new ResponseEntity<>(journalEntry, HttpStatus.CREATED);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
-    @GetMapping("/get-by")
-    public Optional<JournalEntry> getJournalById(@RequestParam String id) {
-        return journalEntryService.getJournalById(id);
+    @GetMapping("/find-by-id")
+    public ResponseEntity<JournalEntry> getJournalById(@RequestParam String id) {
+       Optional<JournalEntry> journalEntry  = journalEntryService.getJournalById(id);
+       if (journalEntry.isPresent()) {
+           return new ResponseEntity<>(journalEntry.get(), HttpStatus.OK);
+       }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/delete/{id}")
-    public boolean deleteById(@PathVariable String id) {
-        return journalEntryService.deleteById(id);
+    public ResponseEntity<JournalEntry> deleteById(@PathVariable String id) {
+        Optional<JournalEntry> deletedJournal =  journalEntryService.deleteById(id);
+        if (deletedJournal.isPresent()) {
+            return new ResponseEntity<>(deletedJournal.get(), HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PutMapping("/update/{id}")
-    public JournalEntry updateById(@PathVariable String id, @RequestBody JournalEntry updatedJournal) {
-        System.out.println("Call on update route.");
-        return journalEntryService.updateById(id, updatedJournal);
+    public ResponseEntity<JournalEntry> updateById(@PathVariable String id, @RequestBody JournalEntry updatedJournal) {
+        Optional<JournalEntry> update = journalEntryService.updateById(id, updatedJournal);
+        if (update.isPresent()) {
+            return new ResponseEntity<>(update.get(), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
     // For MongoDB
 
@@ -56,7 +78,7 @@ public class JournalEntryControllerV2 {
         return journalEntryService.createNewEntryPostgres(journalEntry);
     }
 
-    @GetMapping("/get-by-post")
+    @GetMapping("/find-by-id-post")
     public Optional<JournalEntryPostgres> getJournalByIdPostgres(@RequestParam long id) {
         return journalEntryService.getJournalByIdPostgres(id);
     }

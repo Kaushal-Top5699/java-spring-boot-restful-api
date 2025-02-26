@@ -52,12 +52,13 @@ public class JournalEntryService {
     }
 
     // For MongoDB
-    public boolean deleteById(String id) {
+    public Optional<JournalEntry> deleteById(String id) {
         if (this.getJournalById(id).isPresent()) {
+            Optional<JournalEntry> foundJournal = journalEntryRepo.findById(id);
             journalEntryRepo.deleteById(id);
-            return true;
+            return foundJournal;
         }
-        return false;
+        return Optional.empty();
     }
 
     // For Postgres
@@ -70,7 +71,7 @@ public class JournalEntryService {
     }
 
     // For MongoDB
-    public JournalEntry updateById(String id, JournalEntry updatedJournal) {
+    public Optional<JournalEntry> updateById(String id, JournalEntry updatedJournal) {
         if (this.getJournalById(id).isPresent()) {
             this.getJournalById(id).map(currentJournal -> {
                 currentJournal.setTitle(updatedJournal.getTitle());
@@ -78,7 +79,7 @@ public class JournalEntryService {
                 return journalEntryRepo.save(currentJournal);
             });
         }
-        return null;
+        return Optional.empty();
     }
 
     // For Postgres
