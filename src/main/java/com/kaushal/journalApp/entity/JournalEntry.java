@@ -1,37 +1,22 @@
 package com.kaushal.journalApp.entity;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
+@Getter // Lombok Getter or can use @Data will cover both.
+@Setter // Lombok Setter
 public class JournalEntry {
 
     @Id
     private String id;
+
+    @NonNull
     private String title;
     private String content;
 
-    public String getId() {
-        return id;
-    }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
 }
