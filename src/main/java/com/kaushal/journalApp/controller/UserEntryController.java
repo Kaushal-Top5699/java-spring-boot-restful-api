@@ -30,6 +30,7 @@ public class UserEntryController {
         try {
             return new ResponseEntity<>(userEntryService.saveUser(userEntry), HttpStatus.CREATED);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
@@ -52,8 +53,8 @@ public class UserEntryController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<UserEntry> updateUser(@RequestBody UserEntry updatedUser) {
+    @PutMapping("/update-password")
+    public ResponseEntity<UserEntry> updateUserPassword(@RequestBody UserEntry updatedUser) {
         Optional<UserEntry> foundUser = userEntryService.findByUsername(updatedUser.getUsername());
         if (foundUser.isPresent()) {
             UserEntry user = foundUser.get();
@@ -63,6 +64,19 @@ public class UserEntryController {
             return new ResponseEntity<>(user, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
 
+    @PutMapping("/update-username/{currentUsername}")
+    public ResponseEntity<UserEntry> updateUsername(@PathVariable String currentUsername, @RequestBody UserEntry updatedUser) {
+        Optional<UserEntry> foundUser = userEntryService.findByUsername(currentUsername);
+        System.out.println(foundUser);
+        if (foundUser.isPresent()) {
+            UserEntry user = foundUser.get();
+            user.setUsername(updatedUser.getUsername());  // Updating username
+            userEntryService.saveUser(user);  // Saving updated user
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }
