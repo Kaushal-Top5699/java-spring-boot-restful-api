@@ -2,6 +2,7 @@ package com.kaushal.journalApp.service;
 
 import com.kaushal.journalApp.entity.JournalEntry;
 import com.kaushal.journalApp.entity.JournalEntryPostgres;
+import com.kaushal.journalApp.entity.UserEntry;
 import com.kaushal.journalApp.repository.JournalEntryPostgresRepo;
 import com.kaushal.journalApp.repository.JournalEntryRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,9 @@ public class JournalEntryService {
 
     @Autowired
     private JournalEntryRepo journalEntryRepo;
+
+    @Autowired
+    private UserEntryService userEntryService;
 
     @Autowired
     private JournalEntryPostgresRepo journalEntryRepoPostgress;
@@ -40,9 +44,16 @@ public class JournalEntryService {
     }
 
     // For MongoDB
-    public String createNewEntry(JournalEntry journalEntry) {
-        journalEntryRepo.save(journalEntry);
-        return "Saved!";
+    public String createNewEntry(JournalEntry journalEntry, String username) {
+        Optional<UserEntry> userFound = userEntryService.findByUsername(username);
+        JournalEntry saved = journalEntryRepo.save(journalEntry);
+        if (userFound.isPresent()) {
+            UserEntry user = userFound.get();
+            user.getJournalEntries().add(saved);
+            userEntryService.saveUser(user);
+            return "Saved!";
+        }
+        return "Failed";
     }
 
     // For Postgres

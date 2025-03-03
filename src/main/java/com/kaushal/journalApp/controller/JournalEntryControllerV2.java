@@ -2,7 +2,9 @@ package com.kaushal.journalApp.controller;
 
 import com.kaushal.journalApp.entity.JournalEntry;
 import com.kaushal.journalApp.entity.JournalEntryPostgres;
+import com.kaushal.journalApp.entity.UserEntry;
 import com.kaushal.journalApp.service.JournalEntryService;
+import com.kaushal.journalApp.service.UserEntryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,19 +19,29 @@ public class JournalEntryControllerV2 {
     @Autowired
     private JournalEntryService journalEntryService;
 
+    @Autowired
+    private UserEntryService userEntryService;
+
     // For MongoDB
-    @GetMapping("/get-all")
-    public ResponseEntity<List<JournalEntry>> getAll() {
-        if (!journalEntryService.getAllEnteries().isEmpty()) {
-            return new ResponseEntity<>(journalEntryService.getAllEnteries(), HttpStatus.FOUND);
+    @GetMapping("/get-journals/{username}")
+    public ResponseEntity<List<JournalEntry>> getAllJournalEntriesOfUser(@PathVariable String username) {
+        Optional<UserEntry> userFound = userEntryService.findByUsername(username);
+        if (userFound.isPresent()) {
+            UserEntry user = userFound.get();
+            List<JournalEntry> allEntries = user.getJournalEntries();
+            if (!allEntries.isEmpty()) {
+                return new ResponseEntity<>(allEntries, HttpStatus.FOUND);
+            }
+            System.out.println("Empty Entries");
+            return new ResponseEntity<>(allEntries, HttpStatus.FOUND);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping("/new-entry")
-    public ResponseEntity<JournalEntry> creatNewEntry(@RequestBody JournalEntry journalEntry) {
+    @PostMapping("/new-entry/{username}")
+    public ResponseEntity<JournalEntry> creatNewEntry(@RequestBody JournalEntry journalEntry, @PathVariable String username) {
         try {
-            journalEntryService.createNewEntry(journalEntry);
+            journalEntryService.createNewEntry(journalEntry, username);
             return new ResponseEntity<>(journalEntry, HttpStatus.CREATED);
         } catch (Exception e) {
             e.printStackTrace();
@@ -64,6 +76,9 @@ public class JournalEntryControllerV2 {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
     // For MongoDB
+
+
+
 
 
 
